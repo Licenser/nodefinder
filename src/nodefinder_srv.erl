@@ -59,11 +59,11 @@ handle_call(discover, _From, State) ->
     {reply, ok, discover(State)};
 
 handle_call(Request, _From, State) -> 
-    ?WARNING({handle_call, Reqest}, [], [nodefinder]),
+    ?WARNING({handle_call, Request}, [], [nodefinder]),
     {noreply, State}.
 
 handle_cast(Request, State) -> 
-    ?WARNING({handle_cast, Reqest}, [], [nodefinder]),
+    ?WARNING({handle_cast, Request}, [], [nodefinder]),
     {noreply, State}.
 
 handle_info({udp, Socket, IP, InPortNo, Packet},	   
@@ -114,17 +114,14 @@ mac(Message) ->
     crypto:sha_mac(Key, Message).
 
 process_packet("DISCOVER " ++ NodeName, IP, InPortNo, State) -> 
-    ?DBG({process_packet, discover, NodeName, Ip}, [], [nodefinder]),
-    error_logger:warning_msg("old DISCOVER packet from ~p (~p:~p) ~n", 
-			     [NodeName,
-                              IP,
-                              InPortNo]),
+    ?WARNING({process_packet, old_discover, NodeName, IP, InPortNo}, [], [nodefinder]),
     State;
+
 process_packet("DISCOVERV2 " ++ Rest, IP, InPortNo, State) -> 
   % Falling a mac is not really worth logging, since having multiple
   % cookies on the network is one way to prevent crosstalk.  However
   % the packet should always have the right structure.
-    ?DBG({process_packet, discover2, Ip, InPortNo}, [], [nodefinder]),
+    ?DBG({process_packet, discover2, IP, InPortNo}, [], [nodefinder]),
     try
 	<<Mac:20/binary, " ", 
 	  Time:64, " ",
@@ -141,8 +138,7 @@ process_packet("DISCOVERV2 " ++ Rest, IP, InPortNo, State) ->
 	end
     catch
 	error : {badmatch, _} ->
-	    ?ERROR({process_packet, discover2, bad_match, Rest}, [], [nodefinder]),
-	    
+	    ?ERROR({process_packet, discover2, bad_match, Rest}, [], [nodefinder])
     end,
     State;
 
