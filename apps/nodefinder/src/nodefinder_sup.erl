@@ -1,6 +1,6 @@
 %% @hidden
 
--module (nodefindersup).
+-module (nodefinder_sup).
 -behaviour (supervisor).
 
 -export ([ start_link/2, start_link/3, init/1 ]).
@@ -22,12 +22,12 @@ start_link (Addr, Port, Ttl) ->
 init ([ Addr, Port, Ttl ]) ->
   { ok,
     { { one_for_one, 3, 10 },
-      [ { nodefindersrv,
-          { nodefindersrv, start_link, [ Addr, Port, Ttl ] },
+      [ { nodefinder_srv,
+          { nodefinder_srv, start_link, [ Addr, Port, Ttl ] },
           permanent,
           1000,
           worker,
-          [ nodefindersrv ]
+          [ nodefinder_srv ]
         }
       ]
     }

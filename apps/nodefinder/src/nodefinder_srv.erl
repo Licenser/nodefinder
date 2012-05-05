@@ -4,7 +4,7 @@
 %% @hidden
 %% @end
 
--module (nodefindersrv).
+-module (nodefinder_srv).
 -behaviour (gen_server).
 -export ([ start_link/2, start_link/3, discover/0 ]).
 -export ([ init/1,
@@ -37,24 +37,26 @@ discover () ->
 %-=====================================================================-
 
 init ([ Addr, Port, Ttl ]) ->
-  process_flag (trap_exit, true),
+    io:format("bla~n"),
+    process_flag (trap_exit, true),
+    Opts = [{active, true },
+	    {ip, Addr },
+	    {add_membership, {Addr,{0, 0, 0, 0}}},
+	    {multicast_loop, true},
+	    {reuseaddr, true},
+	    list ],
+    io:format("Opts: ~p~n", [Opts]),
+    { ok, RecvSocket } = gen_udp:open(Port, Opts),
+    io:format("Sock: ~p~n", [RecvSocket]),
+    { ok, discover (#statev2{recvsock = RecvSocket,
+			     sendsock = send_socket (Ttl),
+			     addr = Addr,
+			     port = Port})}.
 
-  Opts = [ { active, true },
-           { ip, Addr },
-           { add_membership, { Addr, { 0, 0, 0, 0 } } },
-           { multicast_loop, true },
-           { reuseaddr, true },
-           list ],
-
-  { ok, RecvSocket } = gen_udp:open (Port, Opts),
-
-  { ok, discover (#statev2{ recvsock = RecvSocket,
-                            sendsock = send_socket (Ttl),
-                            addr = Addr,
-                            port = Port }) }.
-
-handle_call (discover, _From, State) -> { reply, ok, discover (State) };
-handle_call (_Request, _From, State) -> { noreply, State }.
+handle_call (discover, _From, State) -> 
+    {reply, ok, discover(State)};
+handle_call (_Request, _From, State) -> 
+    {noreply, State}.
 
 handle_cast (_Request, State) -> { noreply, State }.
 

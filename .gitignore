@@ -1,5 +1,12 @@
-# BOF
-
-.svn
-
-# EOF
+ebin
+db
+deps
+*~
+.DS_Store
+Mnesia.*
+erl_crash.dump
+*.beam
+rel/wiggle
+rel/wiggle.tar.bz2
+manifest
+gproc_dist_sniffle*

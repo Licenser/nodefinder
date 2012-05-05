@@ -1,10 +1,10 @@
 %% @doc Nodefinder service.
 %% @end
 
--module (nodefinder).
--export ([ discover/0 ]).
--behaviour (application).
--export ([ start/0, start/2, stop/0, stop/1 ]).
+-module(nodefinder_app).
+-export([ discover/0 ]).
+-behaviour(application).
+-export([ start/0, start/2, stop/0, stop/1 ]).
 
 %-=====================================================================-
 %-                                Public                               -
@@ -16,7 +16,7 @@
 %% @end
 
 discover () ->
-  nodefindersrv:discover ().
+  nodefinder_srv:discover ().
 
 %-=====================================================================-
 %-                        application callbacks                        -
@@ -31,10 +31,14 @@ start () ->
 %% @hidden
 
 start (_Type, _Args) ->
-  { ok, Addr } = application:get_env (nodefinder, addr),
-  { ok, Port } = application:get_env (nodefinder, port),
-  { ok, Ttl } = application:get_env (nodefinder, multicast_ttl),
-  nodefindersup:start_link (Addr, Port, Ttl).
+    io:format("1~n"),
+    { ok, Addr } = application:get_env (nodefinder, addr),
+    io:format("2~n"),
+    { ok, Port } = application:get_env (nodefinder, port),
+    io:format("3~n"),
+    { ok, Ttl } = application:get_env (nodefinder, multicast_ttl),
+    io:format("4~n"),
+    nodefinder_sup:start_link (Addr, Port, Ttl).
 
 %% @hidden
 
