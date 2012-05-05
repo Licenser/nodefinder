@@ -1,5 +1,0 @@
-TESTS = 		\
-  test-ec2nodefinder
-
-EXTRA_DIST +=		\
-  test-ec2nodefinder
