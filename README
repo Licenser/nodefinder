@@ -3,3 +3,11 @@ Strategies for automatic node discovery in Erlang
 
 Imported from
 http://code.google.com/p/nodefinder/
+
+
+===
+Configuration:
+{nodefinder,
+   [{addr, {224,0,0,1}},    % This is a multicast address not yours!
+    {port, 1234},           % the port to multicast on
+    {multicast_ttl, 10}]}   % a TTL
