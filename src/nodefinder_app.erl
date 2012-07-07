@@ -31,13 +31,9 @@ start () ->
 %% @hidden
 
 start (_Type, _Args) ->
-    io:format("1~n"),
     { ok, Addr } = application:get_env (nodefinder, addr),
-    io:format("2~n"),
     { ok, Port } = application:get_env (nodefinder, port),
-    io:format("3~n"),
     { ok, Ttl } = application:get_env (nodefinder, multicast_ttl),
-    io:format("4~n"),
     nodefinder_sup:start_link (Addr, Port, Ttl).
 
 %% @hidden
