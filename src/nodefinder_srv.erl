@@ -19,8 +19,6 @@
 -record(state, {socket, addr, port}).
 -record(statev2, {sendsock, recvsock, addr, port}).
 
--include_lib("alog_pt.hrl").
-
 
 %-=====================================================================-
 %-                                Public                               -
@@ -40,7 +38,6 @@ discover() ->
 %-=====================================================================-
 
 init([Addr, Port, Ttl]) ->
-    ?DBG({init, Addr, Port, Ttl}, [], [nodefinder]),
     process_flag(trap_exit, true),
     Opts = [{active, true},
 	    {ip, Addr},
@@ -55,34 +52,27 @@ init([Addr, Port, Ttl]) ->
 			   port = Port})}.
 
 handle_call(discover, _From, State) -> 
-    ?DBG({handle_call, discover}, [], [nodefinder]),
     {reply, ok, discover(State)};
 
 handle_call(Request, _From, State) -> 
-    ?WARNING({handle_call, Request}, [], [nodefinder]),
     {noreply, State}.
 
 handle_cast(Request, State) -> 
-    ?WARNING({handle_cast, Request}, [], [nodefinder]),
     {noreply, State}.
 
 handle_info({udp, Socket, IP, InPortNo, Packet},	   
 	    State=#statev2{recvsock = Socket}) ->
-    ?DBG({handle_info, udp, Packet}, [], [nodefinder]),
     {noreply, process_packet(Packet, IP, InPortNo, State)};
 
 handle_info(Msg, State) -> 
-    ?DBG({handle_info, Msg}, [], [nodefinder]),
     {noreply, State}.
 
 terminate(Reason, State = #statev2{}) ->
-    ?WARNING({terminate, Reason}, [], [nodefinder]),
     gen_udp:close(State#statev2.recvsock),
     gen_udp:close(State#statev2.sendsock),
     ok.
 
 code_change(OldVsn, State = #state{}, _Extra) -> 
-    ?WARNING({change_code, OldVsn}, [], [nodefinder]),
     NewState = #statev2{recvsock = State#state.socket,
 			sendsock = send_socket(1),
 			addr = State#state.addr,
@@ -114,14 +104,12 @@ mac(Message) ->
     crypto:sha_mac(Key, Message).
 
 process_packet("DISCOVER " ++ NodeName, IP, InPortNo, State) -> 
-    ?WARNING({process_packet, old_discover, NodeName, IP, InPortNo}, [], [nodefinder]),
     State;
 
 process_packet("DISCOVERV2 " ++ Rest, IP, InPortNo, State) -> 
   % Falling a mac is not really worth logging, since having multiple
   % cookies on the network is one way to prevent crosstalk.  However
   % the packet should always have the right structure.
-    ?DBG({process_packet, discover2, IP, InPortNo}, [], [nodefinder]),
     try
 	<<Mac:20/binary, " ", 
 	  Time:64, " ",
@@ -129,16 +117,15 @@ process_packet("DISCOVERV2 " ++ Rest, IP, InPortNo, State) ->
 	
 	case {mac([<<Time:64>>, NodeString]), abs(seconds() - Time)} of
 	    {Mac, AbsDelta} when AbsDelta < 300 ->
-		?DBG({process_packet, discover2, NodeString}, [], [nodefinder]),
 		net_adm:ping(list_to_atom(binary_to_list(NodeString)));
 	    {Mac, AbsDelta} ->
-		?ERROR({process_packet, discover2, expired, AbsDelta}, [], [nodefinder]);
+		ok;
 	    _ ->
 		ok
 	end
     catch
 	error : {badmatch, _} ->
-	    ?ERROR({process_packet, discover2, bad_match, Rest}, [], [nodefinder])
+		ok
     end,
     State;
 
